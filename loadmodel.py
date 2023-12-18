@@ -2,10 +2,10 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
 def main():
-    tokenizer = AutoTokenizer.from_pretrained("huggingface/mistralai/Mixtral-8x7B-Instruct-v0.1")
-    model = AutoModelForCausalLM.from_pretrained("huggingface/mistralai/Mixtral-8x7B-Instruct-v0.1")
+    tokenizer = AutoTokenizer.from_pretrained("DiscoResearch/DiscoLM-mixtral-8x7b-v2")
+    model = AutoModelForCausalLM.from_pretrained("DiscoResearch/DiscoLM-mixtral-8x7b-v2")
 
-  prompt = "Translate the following English text to French: 'Hello, how are you?'"
+    prompt = "Translate the following English text to French: 'Hello, how are you?'"
 
     inputs = tokenizer(prompt, return_tensors="pt")
     outputs = model.generate(inputs['input_ids'], max_length=50, num_return_sequences=5)
