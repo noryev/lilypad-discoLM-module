@@ -3,7 +3,7 @@ import torch
 
 def load_model(model_name):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", trust_remote_code=True)
     return tokenizer, model
 
 def generate_text(tokenizer, model, prompt):
