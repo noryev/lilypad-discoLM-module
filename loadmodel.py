@@ -1,16 +1,26 @@
-import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
-torch.set_default_device("cuda")
+def load_model(model_name):
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
+    return tokenizer, model
 
-model = AutoModelForCausalLM.from_pretrained("microsoft/phi-2", torch_dtype="auto", trust_remote_code=True)
-tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2", trust_remote_code=True)
+def generate_text(tokenizer, model, prompt):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-inputs = tokenizer('''def print_prime(n):
-   """
-   Print all primes between 1 and n
-   """''', return_tensors="pt", return_attention_mask=False)
+def main():
+    model_name = "microsoft/phi-2"
+    test_prompt = "Once upon a time"
 
-outputs = model.generate(**inputs, max_length=200)
-text = tokenizer.batch_decode(outputs)[0]
-print(text)
+    print(f"Loading model: {model_name}")
+    tokenizer, model = load_model(model_name)
+
+    print(f"Generating text from prompt: {test_prompt}")
+    generated_text = generate_text(tokenizer, model, test_prompt)
+    print(f"Generated Text: {generated_text}")
+
+if __name__ == "__main__":
+    main()
