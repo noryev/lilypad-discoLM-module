@@ -1,26 +1,28 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from huggingface_hub import snapshot_download
 import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def load_model(model_name):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto", trust_remote_code=True)
-    return tokenizer, model
+# Define the prompt
+prompt = "Name the fastest plane on record"
 
-def generate_text(tokenizer, model, prompt):
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+# Download the model
+model_path = snapshot_download(repo_id="amgadhasan/phi-2", repo_type="model", local_dir="./phi-2", local_dir_use_symlinks=False)
 
-def main():
-    model_name = "microsoft/phi-2"
-    test_prompt = "Once upon a time"
+# Load the tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+torch.set_default_dtype(torch.float16)  # Ensure compatibility with the model
+model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True)
 
-    print(f"Loading model: {model_name}")
-    tokenizer, model = load_model(model_name)
+# Text generation function
+def generate(prompt: str, generation_params: dict = {"max_length": 200}) -> str:
+    try:
+        inputs = tokenizer(prompt, return_tensors="pt").to("cuda")
+        outputs = model.generate(**inputs, **generation_params)
+        completion = tokenizer.batch_decode(outputs)[0]
+        return completion
+    except Exception as e:
+        return f"Error generating text: {str(e)}"
 
-    print(f"Generating text from prompt: {test_prompt}")
-    generated_text = generate_text(tokenizer, model, test_prompt)
-    print(f"Generated Text: {generated_text}")
-
-if __name__ == "__main__":
-    main()
+# Generate and print the result
+result = generate(prompt)
+print(result)
